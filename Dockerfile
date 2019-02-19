@@ -1,20 +1,9 @@
-#Use the Postgres image as a base
+FROM maven:3.6.0-jdk-8 AS builder
+WORKDIR /usr/src/cql_storage
+ADD . .
+RUN mvn clean install -DskipTests -f /usr/src/cql_storage
+
 FROM tomcat:latest
-MAINTAINER Mike Riley "michael.riley@gtri.gatech.edu"
-
-RUN apt-get update -y && apt-get upgrade -y
-
-RUN apt-get install -y \
-      git \
-      postgresql \
-      openjdk-8-jdk \
-      maven
-	  
-# Define environment variable
-ENV POSTGRES_USER postgres
-ENV POSTGRES_PASSWORD postgres
-ENV POSTGRES_DB ecrdb
-
-RUN mvn clean install -DskipTests -f /usr/src/cqlstorage_src/
-RUN cp /usr/src/phcr_src/target/CQLStorage-0.0.1-SNAPSHOT.war $CATALINA_HOME/webapps/
-COPY wait-for-postgres.sh /usr/local/bin/wait-for-postgres.sh
+#move the WAR for contesa to the webapps directory
+COPY --from=builder /usr/src/cql_storage/target/CQLStorage-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/CQLStorage-0.0.1-SNAPSHOT.war
+COPY --from=builder /usr/src/cql_storage/src/main/resources/* /usr/local/tomcat/src/main/resources/
