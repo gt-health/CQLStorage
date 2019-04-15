@@ -17,7 +17,7 @@ import edu.gatech.CQLStorage.entity.CQL;
 import edu.gatech.CQLStorage.repo.CQLRepository;
 
 @Component
-public class StartupDeafultScriptInitializer implements ApplicationListener<ApplicationReadyEvent>{
+public class StartupDeafultScriptInitializer{
 	Logger log = LoggerFactory.getLogger(StartupDeafultScriptInitializer.class);
 	PathMatchingResourcePatternResolver resolver;
 	@Autowired
@@ -25,10 +25,6 @@ public class StartupDeafultScriptInitializer implements ApplicationListener<Appl
 	
 	@EventListener(ApplicationReadyEvent.class)
 	public void loadCQLScripts() {
-	}
-
-	@Override
-	public void onApplicationEvent(final ApplicationReadyEvent event) {
 		log.debug("Running loadCQLScripts.");
 		resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
 		try {
@@ -43,8 +39,10 @@ public class StartupDeafultScriptInitializer implements ApplicationListener<Appl
 				CQL entity = new CQL();
 				entity.setName(fileName.substring(0, fileName.length()-4)); //Lose the extension
 				entity.setBody(body);
-				repository.save(entity);
-				resource.getFile().delete(); //Clean out cql file once it's been put into Database
+				log.debug("cql entity:"+entity.toString());
+				CQL postEntity = repository.save(entity);
+				boolean deleted = resource.getFile().delete(); //Clean out cql file once it's been put into Database
+				log.debug("deleted?:"+deleted);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
