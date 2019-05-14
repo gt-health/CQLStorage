@@ -1,6 +1,7 @@
 package edu.gatech.CQLStorage.listener;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -36,13 +37,14 @@ public class StartupDeafultScriptInitializer{
 				String body = scanner.hasNext() ? scanner.next() : "";
 				scanner.close();
 				String fileName = resource.getFilename();
-				CQL entity = new CQL();
-				entity.setName(fileName.substring(0, fileName.length()-4)); //Lose the extension
+				String name = fileName.substring(0, fileName.length()-4);//Lose the extension
+				List<CQL> results = repository.findByName(name);
+				CQL entity = results.isEmpty()? new CQL() : results.get(0);
+				entity.setName(name);
 				entity.setBody(body);
 				log.debug("cql entity:"+entity.toString());
 				CQL postEntity = repository.save(entity);
-				boolean deleted = resource.getFile().delete(); //Clean out cql file once it's been put into Database
-				log.debug("deleted?:"+deleted);
+				
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
